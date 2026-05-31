@@ -1,0 +1,211 @@
+/* editor.module.css —— Typora 式内联 WYSIWYG 编辑面（微光玫瑰）。
+ * 编辑区本身就是「成品样式」：边写边渲染、所见即所得，不再单独预览。
+ * 书写栏居中成舒适宽度（Typora 精髓），暖底、宋体标题、玫瑰强调。 */
+
+.surface {
+  --rose: #c2706c;
+  --rose-soft: rgba(194, 112, 108, 0.4);
+  --ink: #4a4340;
+  --ink-strong: #342d2b;
+  --muted: #8a7f7a;
+  --fill: #fdf6f5;
+  --rule: #ece2e0;
+  --paper: #fffdfc;
+  --serif: 'Songti SC', 'STSong', 'SimSun', Georgia, serif;
+  --sans: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
+
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(80, 60, 56, 0.05), 0 12px 40px -28px rgba(80, 60, 56, 0.25);
+  min-height: calc(100vh - 230px);
+  padding: 40px 0 120px;
+}
+
+/* 居中书写栏：Typora 式舒适阅读宽度（窗口可铺满，文字居中）。 */
+.column {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+/* 文章标题（公众号标题，inline 大字，像 Typora 文首的 # 标题） */
+.titleInput {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ink-strong);
+  letter-spacing: 0.01em;
+  margin-bottom: 6px;
+  resize: none;
+}
+.titleInput::placeholder {
+  color: #cdbfb9;
+  font-weight: 700;
+}
+
+.titleRule {
+  height: 1px;
+  background: var(--rule);
+  margin: 14px 0 26px;
+}
+
+/* ===== Lexical 编辑器内容区 ===== */
+.editable {
+  outline: none;
+  font-family: var(--sans);
+  font-size: 16.5px;
+  line-height: 1.95;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+  caret-color: var(--rose);
+  min-height: 320px;
+}
+.editable > * {
+  margin: 0 0 1.05em;
+}
+
+.placeholder {
+  position: absolute;
+  pointer-events: none;
+  color: #c3b6b0;
+  font-family: var(--sans);
+  font-size: 16.5px;
+  line-height: 1.95;
+  user-select: none;
+}
+
+/* 段落 */
+.paragraph {
+  margin: 0 0 1.05em;
+}
+
+/* 标题：宋体 + 玫瑰短线锚，呼应公众号成品的「章节/步骤」层次 */
+.h2 {
+  font-family: var(--serif);
+  font-size: 23px;
+  font-weight: 700;
+  color: var(--ink-strong);
+  line-height: 1.45;
+  margin: 1.8em 0 0.7em;
+  padding-left: 14px;
+  border-left: 3px solid var(--rose);
+}
+.h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink-strong);
+  line-height: 1.5;
+  margin: 1.5em 0 0.6em;
+}
+.h3::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--rose);
+  margin-right: 9px;
+  vertical-align: middle;
+}
+.h4 {
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--rose);
+  margin: 1.4em 0 0.5em;
+}
+
+/* 行内 */
+.bold {
+  font-weight: 700;
+  color: var(--ink-strong);
+}
+.italic {
+  font-style: italic;
+  color: #6a5b58;
+}
+.code {
+  font-family: Consolas, Monaco, monospace;
+  font-size: 0.9em;
+  background: #f6efee;
+  color: #b3635f;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.link {
+  color: var(--rose);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rose-soft);
+  cursor: text;
+}
+
+/* 列表（编辑面用真 list-style，干净好读；发布产物由渲染层转成文本前缀） */
+.ul,
+.ol {
+  margin: 0.4em 0 1.05em;
+  padding-left: 1.6em;
+}
+.ul {
+  list-style: disc;
+}
+.ol {
+  list-style: decimal;
+}
+.listItem {
+  margin: 0.35em 0;
+  line-height: 1.9;
+}
+.nestedList {
+  margin: 0.2em 0;
+}
+
+/* 引用 → 提示卡（玫瑰左线 + 淡底），与公众号成品一致 */
+.quote {
+  margin: 1.3em 0;
+  padding: 12px 18px;
+  border-left: 3px solid var(--rose);
+  background: var(--fill);
+  border-radius: 0 8px 8px 0;
+  color: #6a5b58;
+  font-size: 15.5px;
+  line-height: 1.85;
+}
+
+/* 分隔线 */
+.hr {
+  border: none;
+  border-top: 1px solid var(--rule);
+  width: 40px;
+  margin: 2em auto;
+}
+
+/* 插图：编辑面内联展示 */
+.image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.4em auto;
+  border-radius: 8px;
+  border: 1px solid #f0eae9;
+}
+.imageWrap {
+  display: block;
+  text-align: center;
+  margin: 1.2em 0;
+}
+.imageWrap.selected .image {
+  outline: 2px solid var(--rose);
+  outline-offset: 2px;
+}
+.imageAlt {
+  margin-top: 0.5em;
+  font-size: 12.5px;
+  color: #a89a95;
+}
