@@ -115,6 +115,17 @@ export const ChannelContents: CollectionConfig = {
       }),
     },
     {
+      // 公众号长文 markdown 源：运营前端「内容工作台」用 markdown 编辑，保存时同时写入
+      // 由它派生的 body(Lexical)。body 仍是发布/预览渲染的唯一来源；此字段仅让 markdown 可往返编辑。
+      name: 'bodyMarkdown',
+      label: '正文 Markdown 源',
+      type: 'textarea',
+      admin: {
+        condition: (data) => data?.platform === 'wechat',
+        description: '运营前端以 Markdown 编辑长文；发布/预览渲染仍用上方「正文」(body)。一般无需在此手改。',
+      },
+    },
+    {
       // 「复制到公众号」按钮：取与发布同一份内联 HTML，写入双格式剪贴板，
       // 运营粘进公众号编辑器即可，不掉格式（设计 §3.5 通道二）。
       name: 'copyToWechat',

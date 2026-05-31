@@ -105,7 +105,7 @@ export default async function StudioLayout({ children }: { children: ReactNode }
       >
         <div
           style={{
-            maxWidth: 1280,
+            maxWidth: 1440,
             margin: '0 auto',
             padding: `0 ${space.md}`,
             minHeight: 60,
