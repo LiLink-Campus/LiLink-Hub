@@ -72,9 +72,12 @@ export default function CreatePage() {
     setError('')
     try {
       const { id } = await createDraft(form)
-      // 建好草稿，进创作页接着写；refresh 让工作台等服务端组件下次读到新草稿。
+      // 建好草稿，进创作页接着写。
+      // 注意：这里【不要】在 push 后面紧跟 router.refresh()——refresh 会刷新「当前」路由
+      // （此刻仍是 /create），与尚未提交的 push 互相打断，导致软导航卡死/反复回弹并重复建草稿
+      // （实测会循环创建 101/102/103…）。工作台是动态页（listMyContent 按请求读库），导航
+      // 过去时本就会拿到最新草稿，无需 refresh。
       router.push(`/studio/compose/${form}/${id}`)
-      router.refresh()
     } catch (err) {
       // createDraft 抛的是中文 message，直接展示。
       const message = err instanceof Error ? err.message : '创建草稿失败，请稍后再试。'
