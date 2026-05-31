@@ -16,8 +16,6 @@
 
 import Link from 'next/link'
 
-import { renderToInlineHtml } from '@/renderers/lexical-to-wechat'
-
 import { getContent } from '../../../_lib/actions'
 import { colors, fonts, radii, space } from '../../../_lib/theme'
 import { Button, Card, StepHeader } from '../../../_ui'
@@ -25,18 +23,23 @@ import { ComposeClient } from './ComposeClient'
 
 export const dynamic = 'force-dynamic'
 
-interface RenderConfigShape {
-  ctaUrl?: string | null
-  ctaText?: string | null
-  noCta?: boolean | null
-}
-
-function toRenderOpts(rc: RenderConfigShape | null | undefined) {
-  return {
-    ctaUrl: rc?.ctaUrl || undefined,
-    ctaText: rc?.ctaText || undefined,
-    noCta: rc?.noCta ?? undefined,
+// 从已 populate 的 body(Lexical) 抽出 媒体 id → 直链 url，供编辑器加载时内联显示已插入图片。
+function extractImageUrlMap(body: unknown): Record<string, string> {
+  const map: Record<string, string> = {}
+  const walk = (node: unknown) => {
+    if (!node || typeof node !== 'object') return
+    const n = node as Record<string, unknown>
+    if (n.type === 'upload') {
+      const v = n.value as { id?: unknown; url?: unknown } | undefined
+      if (v && (typeof v.id === 'string' || typeof v.id === 'number') && typeof v.url === 'string') {
+        map[String(v.id)] = v.url
+      }
+    }
+    if (Array.isArray(n.children)) n.children.forEach(walk)
+    if (n.root) walk(n.root)
   }
+  walk(body)
+  return map
 }
 
 export default async function ArticleComposePage({
@@ -78,12 +81,9 @@ export default async function ArticleComposePage({
   }
 
   const initialTitle = typeof doc.wxTitle === 'string' ? doc.wxTitle : ''
-  // markdown 源是编辑的真源（运营写 markdown）；body 是它派生、用于渲染/发布的 Lexical。
+  // markdown 源是编辑真源；body 由它派生、供发布/预览渲染。
   const initialMarkdown = typeof doc.bodyMarkdown === 'string' ? doc.bodyMarkdown : ''
-  const initialBody = doc.body as Parameters<typeof renderToInlineHtml>[0]
-  const renderConfig = doc.renderConfig as RenderConfigShape | undefined
-  // 首屏初始预览（与发布完全相同的全内联 HTML，由 body 渲染）。
-  const initialPreviewHtml = renderToInlineHtml(initialBody, toRenderOpts(renderConfig))
+  const imageUrlMap = extractImageUrlMap(doc.body)
 
   return (
     <div>
@@ -139,7 +139,7 @@ export default async function ArticleComposePage({
         contentId={id}
         initialTitle={initialTitle}
         initialMarkdown={initialMarkdown}
-        initialPreviewHtml={initialPreviewHtml}
+        imageUrlMap={imageUrlMap}
       />
 
       {/* 底部再放一个「下一步」，移动端长内容滚到底也能直接走下一步 */}
