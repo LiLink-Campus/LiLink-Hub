@@ -105,7 +105,7 @@ export default async function StudioLayout({ children }: { children: ReactNode }
       >
         <div
           style={{
-            maxWidth: 1440,
+            maxWidth: 2400,
             margin: '0 auto',
             padding: `0 ${space.md}`,
             minHeight: 60,
@@ -207,7 +207,7 @@ export default async function StudioLayout({ children }: { children: ReactNode }
       {/* ===== 居中正文容器 ===== */}
       <main
         style={{
-          maxWidth: 960,
+          maxWidth: 2400,
           margin: '0 auto',
           padding: `${space.lg} ${space.md} ${space.xl}`,
           boxSizing: 'border-box',
