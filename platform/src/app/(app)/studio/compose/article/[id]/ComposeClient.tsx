@@ -104,16 +104,16 @@ export function ComposeClient({
         {meta.label}
       </div>
 
-      {/* 主区：宽屏左右分栏，窄屏单列（grid auto-fit 实现移动优先回流） */}
+      {/* 主区：桌面固定双栏——正文编辑区 1fr 撑满，预览固定 420 窄栏。专注桌面端，不做移动回流。 */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: space.lg,
+          gridTemplateColumns: 'minmax(0, 1fr) 420px',
+          gap: space.xl,
           alignItems: 'start',
         }}
       >
-        {/* 左：标题 + 编辑器 */}
+        {/* 左：标题 + 编辑器（1fr 撑满桌面宽度，写作区真正铺开） */}
         <div style={{ minWidth: 0 }}>
           <Field label="公众号标题" hint="这条会作为公众号文章标题，建议 20 字以内。">
             <TextInput
@@ -137,7 +137,7 @@ export function ComposeClient({
           </Field>
         </div>
 
-        {/* 右：手机实时预览（约 390px 手机框，与发布/预览页同款外观） */}
+        {/* 右：手机实时预览（grid 固定 420 窄栏，不抢编辑区宽度；约 390px 手机框） */}
         <div style={{ minWidth: 0 }}>
           <div
             style={{
