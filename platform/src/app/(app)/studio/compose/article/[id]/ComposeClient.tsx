@@ -12,8 +12,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import type { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
-
 import { updateContent } from '../../../_lib/actions'
 import { colors, fonts, radii, space, shadow } from '../../../_lib/theme'
 import { Field, TextInput } from '../../../_ui'
@@ -34,8 +32,8 @@ export interface ComposeClientProps {
   contentId: string
   /** 初始公众号标题（doc.wxTitle）。 */
   initialTitle: string
-  /** 初始正文（doc.body，populated 形状或空）。 */
-  initialBody: SerializedEditorState | null | undefined
+  /** 初始 markdown 源（doc.bodyMarkdown）。 */
+  initialMarkdown: string
   /** 初始预览 HTML（page.tsx 已用 renderToInlineHtml 渲染好，避免首屏空白）。 */
   initialPreviewHtml: string
 }
@@ -43,7 +41,7 @@ export interface ComposeClientProps {
 export function ComposeClient({
   contentId,
   initialTitle,
-  initialBody,
+  initialMarkdown,
   initialPreviewHtml,
 }: ComposeClientProps) {
   const [title, setTitle] = useState(initialTitle)
@@ -126,10 +124,13 @@ export function ComposeClient({
             />
           </Field>
 
-          <Field label="正文" hint="用工具条排版：H2/H3 分小节，配图、列表、引用都行；改动自动保存。">
+          <Field
+            label="正文"
+            hint="用 Markdown 写：## 小节、**加粗**、- 列表、> 引用，配图点「＋ 插图」；改动自动保存。"
+          >
             <Editor
               contentId={contentId}
-              initialBody={initialBody}
+              initialMarkdown={initialMarkdown}
               onSavedBody={onSavedBody}
               onSaveStateChange={setSaveState}
             />

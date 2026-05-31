@@ -78,9 +78,11 @@ export default async function ArticleComposePage({
   }
 
   const initialTitle = typeof doc.wxTitle === 'string' ? doc.wxTitle : ''
+  // markdown 源是编辑的真源（运营写 markdown）；body 是它派生、用于渲染/发布的 Lexical。
+  const initialMarkdown = typeof doc.bodyMarkdown === 'string' ? doc.bodyMarkdown : ''
   const initialBody = doc.body as Parameters<typeof renderToInlineHtml>[0]
   const renderConfig = doc.renderConfig as RenderConfigShape | undefined
-  // 首屏初始预览（与发布完全相同的全内联 HTML）。
+  // 首屏初始预览（与发布完全相同的全内联 HTML，由 body 渲染）。
   const initialPreviewHtml = renderToInlineHtml(initialBody, toRenderOpts(renderConfig))
 
   return (
@@ -136,7 +138,7 @@ export default async function ArticleComposePage({
       <ComposeClient
         contentId={id}
         initialTitle={initialTitle}
-        initialBody={initialBody}
+        initialMarkdown={initialMarkdown}
         initialPreviewHtml={initialPreviewHtml}
       />
 
