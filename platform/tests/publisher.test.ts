@@ -585,6 +585,49 @@ describe('publishEndpoint 幂等与守卫', () => {
     expect(addDraft).not.toHaveBeenCalled()
   })
 
+  it('人工平台局部失败修复：stage=manual_ready 但 status 仍 approved 时，只补流转到 ready_to_publish，不重生成发布包', async () => {
+    const doc = makeChannelContent({
+      platform: 'xiaohongshu',
+      status: 'approved',
+      publishResult: {
+        stage: 'manual_ready',
+        manualPackage: { platform: 'xiaohongshu', title: '已准备' },
+      },
+    })
+    const payload = makeMockPayload(doc)
+    const req = makeReq({ doc, payload })
+
+    const res = await publishEndpoint.handler(req as any)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body).toMatchObject({ ok: true, idempotent: true, stage: 'manual_ready' })
+    // 绝不重新生成发布包/误触发微信链路。
+    expect(getAccessToken).not.toHaveBeenCalled()
+    expect(addDraft).not.toHaveBeenCalled()
+    // 但补做了到 ready_to_publish 的状态流转。
+    const statusWrite = (payload.update as any).mock.calls
+      .map((c: any[]) => c[0])
+      .find((d: any) => d?.data?.status === 'ready_to_publish')
+    expect(statusWrite).toBeTruthy()
+  })
+
+  it('人工平台状态非 approved（draft）：返回 409，to=ready_to_publish，不生成发布包', async () => {
+    const doc = makeChannelContent({
+      platform: 'douyin',
+      status: 'draft',
+      publishResult: { stage: 'none' },
+    })
+    const req = makeReq({ doc })
+
+    const res = await publishEndpoint.handler(req as any)
+    const body = await res.json()
+
+    expect(res.status).toBe(409)
+    expect(body.to).toBe('ready_to_publish')
+    expect(addDraft).not.toHaveBeenCalled()
+  })
+
   it('发布失败：把错误写进 publishResult.lastError 并返回 500', async () => {
     // 让 addDraft 抛错模拟微信侧失败。
     ;(addDraft as any).mockRejectedValueOnce(new Error('新建草稿失败：标题超长'))
