@@ -259,6 +259,10 @@ export interface ChannelContent {
     [k: string]: unknown;
   } | null;
   /**
+   * 运营前端以 Markdown 编辑长文；发布/预览渲染仍用上方「正文」(body)。一般无需在此手改。
+   */
+  bodyMarkdown?: string | null;
+  /**
    * 从媒体库选一张图作公众号封面（建议用云存储的图，详见 README）。
    */
   coverImage?: (number | null) | Media;
@@ -464,6 +468,7 @@ export interface ChannelContentsSelect<T extends boolean = true> {
   wxAuthor?: T;
   wxDigest?: T;
   body?: T;
+  bodyMarkdown?: T;
   coverImage?: T;
   sourceUrl?: T;
   renderConfig?:
