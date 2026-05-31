@@ -69,7 +69,10 @@ export const PLATFORM_SPECS: Record<PlatformCode, PlatformSpec> = {
       image_note: ['socialImages'],
       video: ['videoFile'],
     },
-    notes: ['复用浏览器登录态发布；目前生成可人工复核的发布包，不自动点击最终发布。'],
+    notes: [
+      '复用浏览器登录态发布；生成可人工复核的发布包。',
+      '已支持浏览器自动化 worker（scripts/publish-worker.ts）：自动填表/上传、默认存草稿，由人工点最终发布。',
+    ],
   },
   xiaohongshu: {
     code: 'xiaohongshu',
@@ -91,7 +94,10 @@ export const PLATFORM_SPECS: Record<PlatformCode, PlatformSpec> = {
       image_note: ['socialImages'],
       video: ['videoFile', 'verticalCover'],
     },
-    notes: ['无稳定开放发布 API；采用半自动/人工兜底，避免高频批量发布。'],
+    notes: [
+      '无稳定开放发布 API；采用浏览器自动化 + 人工兜底，避免高频批量发布。',
+      '已支持浏览器自动化 worker（scripts/publish-worker.ts）：话题走联想点选，默认存草稿。',
+    ],
   },
   douyin: {
     code: 'douyin',
@@ -113,7 +119,10 @@ export const PLATFORM_SPECS: Record<PlatformCode, PlatformSpec> = {
       image_note: ['socialImages'],
       video: ['videoFile'],
     },
-    notes: ['先准备标题、描述、封面与视频资产；由运营在创作者后台确认后发布。'],
+    notes: [
+      '先准备标题、描述、封面与视频资产；由运营在创作者后台确认后发布。',
+      '已支持浏览器自动化 worker（scripts/publish-worker.ts）：自动填表/上传、默认存草稿。',
+    ],
   },
   x: {
     code: 'x',
