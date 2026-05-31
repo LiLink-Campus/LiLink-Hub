@@ -8,7 +8,7 @@
 // 落库：用 markdown 作往返源——加载时 markdown→编辑器；保存时编辑器→markdown(bodyMarkdown)
 //   + markdownToBody 派生 body(Lexical)，发布/预览渲染仍走现有 renderToInlineHtml(body)，下游不变。
 
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { LexicalComposer } from '@lexical/react/LexicalComposer'
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
@@ -36,11 +36,16 @@ import {
   LINK,
   type TextMatchTransformer,
 } from '@lexical/markdown'
-import { $insertNodes } from 'lexical'
+import {
+  $insertNodes,
+  COMMAND_PRIORITY_HIGH,
+  DRAGOVER_COMMAND,
+  DROP_COMMAND,
+  PASTE_COMMAND,
+} from 'lexical'
 import { $dfs } from '@lexical/utils'
 
 import { updateContent, uploadMedia } from '../../../_lib/actions'
-import { colors, fonts, radii } from '../../../_lib/theme'
 import { markdownToBody } from './markdown-to-body'
 import { ImageNode, $createImageNode, $isImageNode } from './ImageNode'
 import styles from './editor.module.css'
@@ -118,13 +123,12 @@ export function Editor({ contentId, initialMarkdown, imageUrlMap, onSaveStateCha
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <ImageInsertButton onSaveStateChange={onSaveStateChange} />
       <div style={{ position: 'relative' }}>
         <RichTextPlugin
           contentEditable={<ContentEditable className={styles.editable} aria-label="公众号正文编辑区" />}
           placeholder={
             <div className={styles.placeholder}>
-              在这里开始写……打「## 」是小节标题、「**字**」加粗、「- 」列表、「&gt; 」引用，像写 Markdown 一样，边写边成型。
+              在这里开始写……打「## 」是小节标题、「**字**」加粗、「- 」列表、「&gt; 」引用；图片直接粘贴或拖进来即可。像写 Markdown 一样，边写边成型。
             </div>
           }
           ErrorBoundary={LexicalErrorBoundary}
@@ -134,6 +138,7 @@ export function Editor({ contentId, initialMarkdown, imageUrlMap, onSaveStateCha
       <ListPlugin />
       <LinkPlugin />
       <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+      <ImagePastePlugin onSaveStateChange={onSaveStateChange} />
       <LoadAndSave
         contentId={contentId}
         initialMarkdown={initialMarkdown}
@@ -212,58 +217,89 @@ function LoadAndSave({
   return null
 }
 
-// 「插图」：唯一的非文字按钮（上传图需 URL，无法纯手打）。上传后在光标处插入内联图片节点。
-function ImageInsertButton({ onSaveStateChange }: { onSaveStateChange: (s: SaveState) => void }) {
+// 自然插图：直接「粘贴」或「拖拽」图片到编辑器 → 自动上传并在光标处内联插入（无需按钮）。
+function ImagePastePlugin({ onSaveStateChange }: { onSaveStateChange: (s: SaveState) => void }) {
   const [editor] = useLexicalComposerContext()
-  const [uploading, setUploading] = useState(false)
-  const fileRef = useRef<HTMLInputElement | null>(null)
 
-  const onFile = useCallback(
-    async (e: ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      e.target.value = ''
-      if (!file) return
-      setUploading(true)
-      try {
-        const fd = new FormData()
-        fd.append('file', file)
-        const { id, url } = await uploadMedia(fd)
-        const alt = file.name.replace(/\.[^.]+$/, '')
-        editor.update(() => {
-          $insertNodes([$createImageNode({ mediaId: Number(id) || id, url, alt })])
-        })
-      } catch {
-        onSaveStateChange('error')
-      } finally {
-        setUploading(false)
+  useEffect(() => {
+    // 上传一组图片并在当前光标处依次插入内联图片节点。
+    const uploadAndInsert = async (files: File[]) => {
+      onSaveStateChange('saving')
+      for (const file of files) {
+        try {
+          const fd = new FormData()
+          fd.append('file', file)
+          const { id, url } = await uploadMedia(fd)
+          const alt = (file.name || 'image').replace(/\.[^.]+$/, '')
+          editor.update(() => {
+            $insertNodes([$createImageNode({ mediaId: Number(id) || id, url, alt })])
+          })
+        } catch {
+          onSaveStateChange('error')
+        }
       }
-    },
-    [editor, onSaveStateChange],
-  )
+    }
 
-  return (
-    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
-      <button
-        type="button"
-        onClick={() => !uploading && fileRef.current?.click()}
-        disabled={uploading}
-        style={{
-          appearance: 'none',
-          cursor: uploading ? 'default' : 'pointer',
-          fontFamily: fonts.sans,
-          fontSize: 13,
-          fontWeight: 600,
-          color: colors.rose,
-          background: 'transparent',
-          border: `1px solid ${colors.rose}`,
-          borderRadius: radii.pill,
-          padding: '5px 14px',
-          opacity: uploading ? 0.6 : 1,
-        }}
-      >
-        {uploading ? '上传中…' : '＋ 插图'}
-      </button>
-      <input ref={fileRef} type="file" accept="image/*" onChange={onFile} style={{ display: 'none' }} />
-    </div>
-  )
+    // 粘贴板取图（截图常在 items、文件常在 files，两者都查）。
+    const imagesFromClipboard = (dt: DataTransfer | null): File[] => {
+      if (!dt) return []
+      const out: File[] = []
+      if (dt.files && dt.files.length) {
+        for (const f of Array.from(dt.files)) if (f.type.startsWith('image/')) out.push(f)
+      }
+      if (!out.length && dt.items) {
+        for (const it of Array.from(dt.items)) {
+          if (it.kind === 'file' && it.type.startsWith('image/')) {
+            const f = it.getAsFile()
+            if (f) out.push(f)
+          }
+        }
+      }
+      return out
+    }
+    const imagesFromDrop = (dt: DataTransfer | null): File[] =>
+      dt ? Array.from(dt.files).filter((f) => f.type.startsWith('image/')) : []
+
+    const unPaste = editor.registerCommand(
+      PASTE_COMMAND,
+      (event: ClipboardEvent) => {
+        const imgs = imagesFromClipboard(event.clipboardData)
+        if (!imgs.length) return false // 非图片 → 交给 Lexical 默认粘贴（文字等）
+        event.preventDefault()
+        void uploadAndInsert(imgs)
+        return true
+      },
+      COMMAND_PRIORITY_HIGH,
+    )
+    const unDrop = editor.registerCommand(
+      DROP_COMMAND,
+      (event: DragEvent) => {
+        const imgs = imagesFromDrop(event.dataTransfer)
+        if (!imgs.length) return false
+        event.preventDefault()
+        void uploadAndInsert(imgs)
+        return true
+      },
+      COMMAND_PRIORITY_HIGH,
+    )
+    const unDragover = editor.registerCommand(
+      DRAGOVER_COMMAND,
+      (event: DragEvent) => {
+        // 拖入文件时阻止默认（否则浏览器会打开文件），让 drop 生效。
+        if (event.dataTransfer && Array.from(event.dataTransfer.types).includes('Files')) {
+          event.preventDefault()
+          return true
+        }
+        return false
+      },
+      COMMAND_PRIORITY_HIGH,
+    )
+    return () => {
+      unPaste()
+      unDrop()
+      unDragover()
+    }
+  }, [editor, onSaveStateChange])
+
+  return null
 }
