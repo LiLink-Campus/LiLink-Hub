@@ -19,6 +19,7 @@
 import Link from 'next/link'
 
 import { Card, EmptyState, StatusBadge, StepHeader } from './_ui'
+import { DeleteButton } from './DeleteButton'
 import { listMyContent } from './_lib/actions'
 import type { ContentForm, StudioContentSummary, StudioStatus } from './_lib/types'
 import { colors, fonts, radii, space, shadow } from './_lib/theme'
@@ -92,61 +93,73 @@ function relativeTime(iso: string): string {
 // 单张内容卡（Link 包 Card，得到导航 + 悬浮态）。
 function ContentItemCard({ item }: { item: StudioContentSummary }) {
   return (
-    <Link
-      href={hrefFor(item)}
-      style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-    >
-      <Card interactive padding="md">
+    <Card padding="md">
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: space.md,
+        }}
+      >
+        {/* 跳转区：只包标题 + 元信息（删除按钮在 Link 之外，避免 a 内嵌 button 非法结构 / 误触发跳转）。 */}
+        <Link
+          href={hrefFor(item)}
+          style={{ textDecoration: 'none', color: 'inherit', display: 'block', minWidth: 0, flex: 1 }}
+        >
+          <div
+            style={{
+              fontFamily: fonts.serif,
+              fontSize: 17,
+              fontWeight: 700,
+              color: colors.inkStrong,
+              lineHeight: 1.4,
+              // 标题最多两行，超出省略。
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              wordBreak: 'break-word',
+            }}
+          >
+            {item.title}
+          </div>
+          <div
+            style={{
+              marginTop: space.xs,
+              fontSize: 13,
+              color: colors.muted,
+              lineHeight: 1.6,
+              display: 'flex',
+              alignItems: 'center',
+              gap: space.sm,
+              flexWrap: 'wrap',
+            }}
+          >
+            <span aria-hidden>{FORM_ICON[item.form]}</span>
+            <span>{FORM_LABEL[item.form]}</span>
+            <span aria-hidden style={{ color: colors.rule }}>
+              ·
+            </span>
+            <span>{relativeTime(item.updatedAt)}</span>
+          </div>
+        </Link>
+
+        {/* 右侧：状态徽标 + 删除（删除是独立客户端按钮，不随卡片跳转）。 */}
         <div
           style={{
             display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
             gap: space.sm,
+            flexShrink: 0,
           }}
         >
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div
-              style={{
-                fontFamily: fonts.serif,
-                fontSize: 17,
-                fontWeight: 700,
-                color: colors.inkStrong,
-                lineHeight: 1.4,
-                // 标题最多两行，超出省略。
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                wordBreak: 'break-word',
-              }}
-            >
-              {item.title}
-            </div>
-            <div
-              style={{
-                marginTop: space.xs,
-                fontSize: 13,
-                color: colors.muted,
-                lineHeight: 1.6,
-                display: 'flex',
-                alignItems: 'center',
-                gap: space.sm,
-                flexWrap: 'wrap',
-              }}
-            >
-              <span aria-hidden>{FORM_ICON[item.form]}</span>
-              <span>{FORM_LABEL[item.form]}</span>
-              <span aria-hidden style={{ color: colors.rule }}>
-                ·
-              </span>
-              <span>{relativeTime(item.updatedAt)}</span>
-            </div>
-          </div>
           <StatusBadge status={item.status} />
+          <DeleteButton id={item.id} title={item.title} />
         </div>
-      </Card>
-    </Link>
+      </div>
+    </Card>
   )
 }
 

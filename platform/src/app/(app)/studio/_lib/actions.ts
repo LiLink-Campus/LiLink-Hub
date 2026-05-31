@@ -265,6 +265,27 @@ export async function updateContent(
   }
 }
 
+// ---------- 删除 ----------
+
+/**
+ * 删除一条渠道稿（草稿/内容管理用）。运营可删自己名下的内容；删除后无法恢复。
+ * 仅删渠道稿本身；其自动建的「未命名草稿」选题留着无害（运营侧不展示选题）。
+ */
+export async function deleteContent(id: string): Promise<void> {
+  const { payload, user } = await getPayloadAndUser()
+  try {
+    await payload.delete({
+      collection: CHANNEL_CONTENTS,
+      id,
+      overrideAccess: false,
+      user: user as never,
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    throw new Error(`删除失败：${message}`)
+  }
+}
+
 // ---------- 上传媒体 ----------
 
 /**
