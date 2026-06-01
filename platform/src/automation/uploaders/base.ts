@@ -108,6 +108,15 @@ export function createUploader(platform: ManualPlatformCode, sel: PlatformSelect
               : '图文模式但无可上传的图片素材（assets 为空或未下载成功）',
           )
         }
+        // 封面类素材（vertical_cover/horizontal_cover）当前不自动上传：本工厂只 setInputFiles
+        // 主素材，平台会自动从视频抽帧兜底封面。带了封面就提示运营在草稿里人工确认/替换，
+        // 避免误以为指定封面已生效（小红书视频 requiredAssets 含 verticalCover）。
+        const coverCount = (opts.assets ?? []).filter(
+          (a) => a.role === 'vertical_cover' || a.role === 'horizontal_cover',
+        ).length
+        if (coverCount > 0) {
+          warnings.push('已下载封面素材，但当前不自动上传（平台自动抽帧兜底）；请在草稿里人工确认或替换封面。')
+        }
         const candidates = isVideo ? sel.fileInput : sel.imageFileInput
         const input = await requirePresent(driver, candidates, '选择素材文件')
         log(`上传 ${files.length} 个素材`)
