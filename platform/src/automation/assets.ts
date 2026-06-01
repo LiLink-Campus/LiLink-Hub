@@ -98,7 +98,9 @@ export async function downloadAssets(
   const timeoutMs = opts.timeoutMs ?? 120_000
   const log = opts.log ?? (() => {})
   const tempDir = path.join(os.tmpdir(), `lilink-publish-${randomUUID()}`)
-  await mkdir(tempDir, { recursive: true })
+  // 0o700：临时素材（可能含私有图片/视频）仅当前用户可读，避免共享主机上被同机其他账号读取
+  // （与 session.ts 的 profile 目录权限对齐）。
+  await mkdir(tempDir, { recursive: true, mode: 0o700 })
 
   const resolved: ResolvedAsset[] = []
   const warnings: string[] = []

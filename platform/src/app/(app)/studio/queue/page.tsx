@@ -6,9 +6,9 @@
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { headers as nextHeaders } from 'next/headers'
 
 import { getPlatformSpec, isManualPlatform, modeForPlatform } from '@/platforms/registry'
+import { requireUser } from '../_lib/auth'
 import { fonts, colors, space } from '../_lib/theme'
 import { PublishQueue, type QueueItem } from './PublishQueue'
 
@@ -50,28 +50,26 @@ function toItem(doc: Record<string, unknown>): QueueItem {
 }
 
 export default async function PublishQueuePage() {
+  // 与其它工作台页一致：未登录直接 redirect('/login')（不再静默渲染空队列）。
+  const user = await requireUser()
   const payload = await getPayload({ config })
-  const headers = await nextHeaders()
-  const { user } = await payload.auth({ headers })
 
   let items: QueueItem[] = []
-  if (user) {
-    try {
-      const res = await payload.find({
-        collection: 'channel-contents',
-        where: { status: { equals: 'ready_to_publish' } },
-        depth: 1,
-        limit: 100,
-        sort: '-updatedAt',
-        overrideAccess: false,
-        user: user as never,
-      })
-      items = (res.docs as unknown as Record<string, unknown>[])
-        .filter((d) => isManualPlatform(d.platform))
-        .map(toItem)
-    } catch {
-      items = []
-    }
+  try {
+    const res = await payload.find({
+      collection: 'channel-contents',
+      where: { status: { equals: 'ready_to_publish' } },
+      depth: 1,
+      limit: 100,
+      sort: '-updatedAt',
+      overrideAccess: false,
+      user: user as never,
+    })
+    items = (res.docs as unknown as Record<string, unknown>[])
+      .filter((d) => isManualPlatform(d.platform))
+      .map(toItem)
+  } catch {
+    items = []
   }
 
   const workerLocal = process.env.LILINK_WORKER_LOCAL === '1'
