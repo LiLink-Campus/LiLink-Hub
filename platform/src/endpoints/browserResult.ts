@@ -25,6 +25,18 @@ function readAuthHeader(req: any): string {
   return (h?.authorization as string) || ''
 }
 
+// draftUrl 只接受 http(s)：它会在中台 UI 当 <a href> 渲染，拒绝 javascript:/data: 等，
+// 杜绝（即便 WORKER_REPORT_TOKEN 被滥用或 worker 被攻击时的）存储型 XSS。
+function safeHttpUrl(v: unknown): string | undefined {
+  if (typeof v !== 'string' || !v) return undefined
+  try {
+    const u = new URL(v)
+    return u.protocol === 'http:' || u.protocol === 'https:' ? v : undefined
+  } catch {
+    return undefined
+  }
+}
+
 export const browserResultEndpoint = {
   path: '/:id/browser-result',
   method: 'post' as const,
@@ -62,11 +74,12 @@ export const browserResultEndpoint = {
     const cc = await payload.findByID({ collection: CHANNEL_CONTENTS_SLUG, id }).catch(() => null)
     if (!cc) return Response.json({ error: `渠道稿不存在：${String(id)}` }, { status: 404 })
 
+    const safeDraftUrl = safeHttpUrl(body.draftUrl)
     const browserPublish = {
       platform: body.platform,
       mode: body.mode === 'video' ? 'video' : 'image_note',
       stage: body.stage,
-      ...(typeof body.draftUrl === 'string' && body.draftUrl ? { draftUrl: body.draftUrl } : {}),
+      ...(safeDraftUrl ? { draftUrl: safeDraftUrl } : {}),
       ...(typeof body.error === 'string' && body.error ? { error: body.error } : {}),
       ...(typeof body.title === 'string' && body.title ? { title: body.title } : {}),
       at: new Date().toISOString(),

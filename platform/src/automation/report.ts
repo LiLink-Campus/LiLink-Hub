@@ -46,6 +46,8 @@ export async function reportResult(opts: ReportOptions): Promise<boolean> {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
       body: JSON.stringify(result),
+      // 回报不能无限挂起：env 配错或中台无响应时，worker 进程会卡死、积压后续一键发布。
+      signal: AbortSignal.timeout(15_000),
     })
     if (!res.ok) {
       log(`结果回报失败 HTTP ${res.status}（不影响发布本身）`)

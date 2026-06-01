@@ -4,7 +4,7 @@
 // 每条稿：标题/平台/形态 + 上次浏览器发布结果徽章 + 「一键发布(本机) 或 复制命令」/ 刷新 / 标记已发布。
 // 一键发布触发后轮询结果；status→已发布 仍人工点（防误判已发）。
 
-import { useCallback, useState, useTransition, type CSSProperties } from 'react'
+import { useCallback, useEffect, useRef, useState, useTransition, type CSSProperties } from 'react'
 
 import { colors, radii, space, shadow } from '../_lib/theme'
 import { markPublished } from '../_lib/actions'
@@ -98,6 +98,16 @@ function QueueRow({ item, workerLocal }: { item: QueueItem; workerLocal: boolean
   const [polling, setPolling] = useState(false)
   const [busy, startBusy] = useTransition()
 
+  // 组件卸载后停止轮询：避免卸载后仍 setState / 继续打 server action（最多 12×3s）。
+  // mount 时重置 false（兼容 React Strict Mode dev 下 mount→unmount→remount 双调用）。
+  const cancelledRef = useRef(false)
+  useEffect(() => {
+    cancelledRef.current = false
+    return () => {
+      cancelledRef.current = true
+    }
+  }, [])
+
   const onCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(item.runCmd)
@@ -114,19 +124,21 @@ function QueueRow({ item, workerLocal }: { item: QueueItem; workerLocal: boolean
       try {
         for (let i = 0; i < 12; i += 1) {
           await new Promise((r) => setTimeout(r, 3000))
+          if (cancelledRef.current) return
           let r: BrowserResultView | null = null
           try {
             r = await refreshBrowserResult(item.id)
           } catch {
             r = null
           }
+          if (cancelledRef.current) return
           if (r) {
             setBp(r)
             if (r.at && r.at !== before) break
           }
         }
       } finally {
-        setPolling(false)
+        if (!cancelledRef.current) setPolling(false)
       }
     },
     [item.id],
