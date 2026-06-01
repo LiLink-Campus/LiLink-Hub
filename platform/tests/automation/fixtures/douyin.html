@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>抖音创作者后台（fixture 复刻）</title>
+  <style>
+    body { font-family: sans-serif; padding: 24px; }
+    .hidden { display: none; }
+    .zone-container { border: 1px solid #ccc; min-height: 80px; padding: 8px; }
+    /* CSS-in-JS 动态类名前缀复刻：long-card-xxxx */
+    .long-card-abc123 { margin-top: 12px; }
+    button { margin-top: 16px; padding: 8px 20px; }
+  </style>
+</head>
+<body>
+  <!-- 登录标记：仅当 ?notLoggedIn 时显示（验证 checkLogin 能识别未登录） -->
+  <div id="login" class="hidden">扫码登录</div>
+
+  <h2>发布视频</h2>
+
+  <!-- 上传：通用 file input（uploader 用 input[type=file] 直接 setInputFiles） -->
+  <input id="file" type="file" />
+  <div id="filename"></div>
+
+  <!-- 上传完成信号：前缀类 long-card + 文本「重新上传」（real selector: [class^="long-card"] div:has-text("重新上传")） -->
+  <div id="card" class="long-card-abc123 hidden"><div>重新上传</div></div>
+
+  <h3>作品标题</h3>
+  <input id="title" type="text" placeholder="填写作品标题" />
+
+  <h3>作品描述</h3>
+  <div id="body" class="zone-container" contenteditable="true"></div>
+
+  <button id="publish">发布</button>
+  <div id="status"></div>
+
+  <script>
+    const qs = new URLSearchParams(location.search)
+    if (qs.has('notLoggedIn')) document.getElementById('login').classList.remove('hidden')
+
+    document.getElementById('file').addEventListener('change', (e) => {
+      const f = e.target.files && e.target.files[0]
+      document.getElementById('filename').textContent = f ? f.name : ''
+      // 模拟上传完成：显示「重新上传」+ 跳到发布页（afterUploadUrl）
+      document.getElementById('card').classList.remove('hidden')
+      history.pushState({}, '', '/uploaded?enter_from=publish_page')
+    })
+
+    document.getElementById('publish').addEventListener('click', () => {
+      document.getElementById('status').textContent = 'published'
+      // 跳作品管理页（successUrlGlob）
+      history.pushState({}, '', '/published/manage')
+    })
+  </script>
+</body>
+</html>

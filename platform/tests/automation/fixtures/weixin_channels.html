@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>视频号助手（fixture 复刻）</title>
+  <style>
+    body { font-family: sans-serif; padding: 24px; }
+    .hidden { display: none; }
+    .input-editor { border: 1px solid #ccc; min-height: 80px; padding: 8px; }
+    button { margin-top: 16px; padding: 8px 20px; }
+  </style>
+</head>
+<body>
+  <div id="login" class="hidden">扫码登录</div>
+
+  <h2>发表视频</h2>
+
+  <input id="file" type="file" />
+  <div id="filename"></div>
+  <!-- 上传完成信号（real: .delete-btn 出现） -->
+  <button id="del" class="delete-btn hidden">删除</button>
+
+  <h3>短标题</h3>
+  <input id="title" type="text" placeholder="概括视频主要内容，让更多人看到" />
+
+  <h3>描述</h3>
+  <!-- real: .input-editor[contenteditable] -->
+  <div id="body" class="input-editor" contenteditable="true"></div>
+
+  <!-- 视频号是「发表」不是「发布」 -->
+  <button id="publish">发表</button>
+  <div id="status"></div>
+
+  <script>
+    const qs = new URLSearchParams(location.search)
+    if (qs.has('notLoggedIn')) document.getElementById('login').classList.remove('hidden')
+
+    document.getElementById('file').addEventListener('change', (e) => {
+      const f = e.target.files && e.target.files[0]
+      document.getElementById('filename').textContent = f ? f.name : ''
+      document.getElementById('del').classList.remove('hidden')
+    })
+
+    document.getElementById('publish').addEventListener('click', () => {
+      document.getElementById('status').textContent = 'published'
+      history.pushState({}, '', '/published/list')
+    })
+  </script>
+</body>
+</html>
