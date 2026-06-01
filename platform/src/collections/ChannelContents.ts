@@ -359,6 +359,14 @@ export const ChannelContents: CollectionConfig = {
           label: '发布锁令牌',
           type: 'text',
         },
+        {
+          // worker 浏览器自动发布的结果快照（automation/report.ts 的 BrowserPublishResult）：
+          // {platform,mode,stage:staged|published|failed,draftUrl?,error?,title?,at}。
+          // 由 browser-result endpoint 经 token 鉴权回写；status 不在此自动改（人工确认）。
+          name: 'browserPublish',
+          label: '浏览器发布结果',
+          type: 'json',
+        },
       ],
     },
     {

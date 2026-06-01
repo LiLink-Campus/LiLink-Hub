@@ -13,6 +13,7 @@ import { ChannelContents } from './collections/ChannelContents'
 import { publishEndpoint } from './endpoints/publish'
 import { transitionEndpoint } from './endpoints/transition'
 import { inlineHtmlEndpoint } from './endpoints/inlineHtml'
+import { browserResultEndpoint } from './endpoints/browserResult'
 import { zh } from '@payloadcms/translations/languages/zh'
 import { s3Storage } from '@payloadcms/storage-s3'
 
@@ -40,6 +41,7 @@ export default buildConfig({
         transitionEndpoint,
         publishEndpoint,
         inlineHtmlEndpoint,
+        browserResultEndpoint,
       ],
     },
     Media,
