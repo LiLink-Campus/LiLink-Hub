@@ -208,6 +208,7 @@ async function run(args: {
   contentId?: string
   report: boolean
   headed: boolean
+  draft: boolean
   publish: boolean
   fillOnly: boolean
   slowMo?: number
@@ -219,7 +220,9 @@ async function run(args: {
     die('--fill-only 不能与 --publish 同用：fill-only 只填字段、素材人工上传，无法自动发布')
   }
   const contentId = args.contentId ?? job.contentId
-  const mode = args.publish ? 'publish' : 'draft'
+  // --draft 显式覆盖 --publish（安全优先：两者同传时按 draft 处理，绝不自动发布）。
+  if (args.publish && args.draft) log('⚠ 同时传了 --draft 与 --publish：--draft 优先，按 draft 处理')
+  const mode = args.publish && !args.draft ? 'publish' : 'draft'
   const interactive = Boolean(process.stdin.isTTY)
 
   if (args.publish && !args.dryRun) {
@@ -329,8 +332,10 @@ async function main(): Promise<void> {
         stdin: values.stdin,
         contentId: values['content-id'],
         report: values.report,
-        // 真实发布一律有头（draft 需人工复核点发布；publish 也便于盯防风控）；dry-run 不开浏览器。
-        headed: !values['dry-run'],
+        // 真实发布一律有头（draft 需人工复核点发布；publish 也便于盯防风控）；dry-run 默认不开浏览器，
+        // 但 --headed 可强制开（dry-run 调试看页面用）。
+        headed: values.headed || !values['dry-run'],
+        draft: values.draft,
         publish: values.publish,
         fillOnly: values['fill-only'],
         slowMo: values['slow-mo'] ? Number(values['slow-mo']) : undefined,
@@ -349,7 +354,7 @@ async function main(): Promise<void> {
       console.log(
         '用法：npx tsx scripts/publish-worker.ts <doctor|login|export|run|logout> [flags]\n' +
           '  doctor [--platform p] | login --platform p | export --content-id id --out f |\n' +
-          '  run (--job f|--package f|--stdin) [--headed] [--publish] [--fill-only] [--slow-mo ms] [--dry-run] |\n' +
+          '  run (--job f|--package f|--stdin) [--headed] [--draft|--publish] [--fill-only] [--slow-mo ms] [--dry-run] |\n' +
           '  logout --platform p',
       )
       if (command) die(`未知命令：${command}`)
