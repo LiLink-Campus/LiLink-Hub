@@ -27,7 +27,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
   useTransition,
@@ -161,7 +160,10 @@ export function NoteEditor({ contentId }: { contentId: string }) {
 
   // 最新表单值的 ref（保存时读取，避免 persist 因闭包拿到旧值 / 反复重建）。
   const latestRef = useRef({ title: '', images: [] as ImageItem[], bodyText: '', bodyTopics: [] as string[] })
-  latestRef.current = { title, images, bodyText, bodyTopics }
+  // 每次渲染后（commit 阶段）同步最新值——不在 render 期间写 ref（并发渲染安全）。
+  useEffect(() => {
+    latestRef.current = { title, images, bodyText, bodyTopics }
+  })
 
   // ---------- 初次加载：取完整渠道稿 + 并行历史话题 ----------
   // loading/loadError 已用初值声明，effect 内不再同步重置（避免级联渲染）；
