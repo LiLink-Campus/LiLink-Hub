@@ -266,7 +266,7 @@ describe('buildSocialPackage —— 话题 / 正文 / 素材 / 回退链边界',
     expect(buildSocialPackage({ ...base, excerpt: 'E' }).caption.startsWith('E')).toBe(true)
   })
 
-  it('caption 拼接：正文 + 话题(空格分隔) + LiLink 链接行（用 sourceUrl）', () => {
+  it('caption 拼接：正文(无#) + 缺失话题(空格分隔) + LiLink 链接行（用 sourceUrl）', () => {
     const pkg = buildSocialPackage({
       platform: 'xiaohongshu',
       contentMode: 'image_note',
@@ -277,8 +277,36 @@ describe('buildSocialPackage —— 话题 / 正文 / 素材 / 回退链边界',
       sourceUrl: 'https://lilink.top/x',
     })
     expect(pkg.caption).toContain('正文内容')
-    expect(pkg.caption).toContain('#A #B') // 话题以空格分隔
+    expect(pkg.caption).toContain('#A #B') // 正文无#，话题作为补充行以空格分隔
     expect(pkg.caption).toContain('LiLink: https://lilink.top/x')
+  })
+
+  it('正文为准：正文已含 #话题 时 caption 不重复拼接，仅补缺失的固定话题', () => {
+    const pkg = buildSocialPackage({
+      platform: 'xiaohongshu',
+      contentMode: 'image_note',
+      socialTitle: '标题',
+      socialDescription: '正文很棒 #校园社交 #LiLink',
+      socialImages: [{ id: 1, url: 'https://x/1.jpg' }],
+    })
+    // #校园社交 / #LiLink 已在正文里出现一次，不应再被补成额外话题行而重复
+    expect(pkg.caption.match(/#校园社交/g)?.length).toBe(1)
+    expect(pkg.caption.match(/#LiLink/g)?.length).toBe(1)
+    // 正文里的 #话题 也镜像进 hashtags
+    expect(pkg.hashtags).toContain('#校园社交')
+    expect(pkg.hashtags).toContain('#LiLink')
+  })
+
+  it('向后兼容：旧稿正文无# 时仍把 socialTags 补成话题行', () => {
+    const pkg = buildSocialPackage({
+      platform: 'xiaohongshu',
+      contentMode: 'image_note',
+      socialTitle: '标题',
+      socialDescription: '纯文案没有标签',
+      socialTags: [{ tag: '校园社交' }],
+      socialImages: [{ id: 1, url: 'https://x/1.jpg' }],
+    })
+    expect(pkg.caption).toContain('#校园社交')
   })
 
   it('非人工平台（wechat / x / 未知 / 缺失）抛错，不生成发布包', () => {

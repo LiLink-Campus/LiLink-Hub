@@ -6,6 +6,7 @@
 // A future Playwright worker can consume this same package without changing the
 // content model.
 
+import { parseTopics } from '../lib/topics'
 import {
   getPlatformSpec,
   isManualPlatform,
@@ -96,8 +97,10 @@ function socialTags(cc: AnyRecord): string[] {
     .filter(Boolean)
 }
 
-function hashtagsFor(cc: AnyRecord): string[] {
+function hashtagsFor(cc: AnyRecord, bodyText: string): string[] {
+  // 正文为准：正文里写的 #话题 优先纳入，再补 socialTags / post.tags / 固定运营话题。
   const tags = [
+    ...parseTopics(bodyText),
     ...socialTags(cc),
     ...postTags(cc.post),
     'LiLink',
@@ -230,17 +233,23 @@ export function buildSocialPackage(channelContent: unknown): SocialPublishPackag
     spec.label
   const title = truncateWithWarning(rawTitle, spec.limits.titleMax, warnings, '标题')
 
-  const hashtags = hashtagsFor(cc).slice(0, spec.limits.tagsMax ?? 20)
   const body = truncateWithWarning(
     plainSocialText(cc),
     spec.limits.bodyMax ?? 2000,
     warnings,
     '正文',
   )
+  const hashtags = hashtagsFor(cc, body).slice(0, spec.limits.tagsMax ?? 20)
+
+  // 正文为准：正文里已写过的话题不再重复拼一遍，只补「正文里缺失的话题」。
+  // 兼容旧稿（正文无 #）：bodyTopics 为空 ⇒ missing = 全部话题 ⇒ 仍补出完整话题行。
+  const bodyTopics = new Set(parseTopics(body).map(normalizeTag))
+  const missingHashtags = hashtags.filter((h) => !bodyTopics.has(normalizeTag(h)))
+
   const sourceUrl = stringValue(cc.sourceUrl) || 'https://lilink.top'
   const caption = compactStrings([
     body,
-    hashtags.join(' '),
+    missingHashtags.join(' '),
     sourceUrl ? `LiLink: ${sourceUrl}` : undefined,
   ]).join('\n\n')
 
