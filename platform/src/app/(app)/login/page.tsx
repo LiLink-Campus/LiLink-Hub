@@ -64,8 +64,12 @@ export default function LoginPage() {
         return
       }
 
-      // 登录成功：会话 cookie 已写入。跳工作台并刷新（让服务端组件读到新会话）。
-      router.push('/studio')
+      // 登录成功：会话 cookie 已写入。若带 ?next=（被拦截前的原页）则回跳原页，否则去工作台，
+      // 再 refresh 让服务端组件读到新会话。next 仅允许站内「单斜杠」路径，防开放重定向（//evil.com）。
+      const nextParam = new URLSearchParams(window.location.search).get('next')
+      const safeNext =
+        nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/studio'
+      router.push(safeNext)
       router.refresh()
     } catch {
       setError('网络异常，登录失败，请检查网络后重试。')
@@ -105,7 +109,7 @@ export default function LoginPage() {
             LiLink
           </div>
           <p style={{ margin: `${space.sm} 0 0`, fontSize: 14.5, color: colors.muted, lineHeight: 1.6 }}>
-            运营内容工作台 · 登录后开始创作
+            运营内容工作台 · 创作 ▸ 发布 ▸ 审核，登录后只管写
           </p>
         </div>
 
@@ -161,8 +165,27 @@ export default function LoginPage() {
           </form>
         </Card>
 
-        <p style={{ textAlign: 'center', margin: `${space.lg} 0 0`, fontSize: 12.5, color: colors.muted }}>
-          账号由管理员开通；如忘记密码请联系管理员。
+        <p
+          style={{
+            textAlign: 'center',
+            margin: `${space.lg} 0 0`,
+            fontSize: 12.5,
+            color: colors.muted,
+            lineHeight: 1.7,
+          }}
+        >
+          首次使用？账号由管理员统一开通——登录邮箱与初始密码请
+          {process.env.NEXT_PUBLIC_ADMIN_CONTACT ? (
+            <a
+              href={process.env.NEXT_PUBLIC_ADMIN_CONTACT}
+              style={{ color: colors.rose, textDecoration: 'none' }}
+            >
+              向管理员索取
+            </a>
+          ) : (
+            '向管理员索取'
+          )}
+          。
         </p>
       </div>
     </div>

@@ -371,10 +371,10 @@ export function EmptyState({ title, hint, action, icon }: EmptyStateProps) {
 // StepHeader —— 顶部「创作 ▸ 发布 ▸ 审核」三步进度。current 高亮当前步。
 // ============================================================
 
-const STEPS: { key: 'create' | 'publish' | 'review'; label: string }[] = [
-  { key: 'create', label: '创作' },
-  { key: 'publish', label: '发布' },
-  { key: 'review', label: '审核' },
+const STEPS: { key: 'create' | 'publish' | 'review'; label: string; desc: string }[] = [
+  { key: 'create', label: '创作', desc: '只管写好内容' },
+  { key: 'publish', label: '发布', desc: '选平台、补信息' },
+  { key: 'review', label: '审核', desc: '通过后才正式发出' },
 ]
 
 export interface StepHeaderProps {
@@ -383,6 +383,7 @@ export interface StepHeaderProps {
 
 export function StepHeader({ current }: StepHeaderProps) {
   const currentIdx = STEPS.findIndex((s) => s.key === current)
+  const currentStep = STEPS[currentIdx]
 
   return (
     <nav
@@ -446,6 +447,20 @@ export function StepHeader({ current }: StepHeaderProps) {
           </span>
         )
       })}
+      {currentStep ? (
+        <p
+          style={{
+            flexBasis: '100%',
+            margin: `${space.xs} 0 0`,
+            textAlign: 'center',
+            fontSize: 13,
+            lineHeight: 1.6,
+            color: colors.muted,
+          }}
+        >
+          当前第 {currentIdx + 1} 步 · {currentStep.label}：{currentStep.desc}
+        </p>
+      ) : null}
     </nav>
   )
 }

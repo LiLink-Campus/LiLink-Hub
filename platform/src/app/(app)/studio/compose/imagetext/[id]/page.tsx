@@ -22,6 +22,7 @@
 import { use } from 'react'
 
 import { StepHeader } from '../../../_ui'
+import { ComposeHintBar } from '../../../ComposeHintBar'
 
 import { NoteEditor } from './NoteEditor'
 
@@ -36,6 +37,7 @@ export default function ImagetextComposePage({
   return (
     <div>
       <StepHeader current="create" />
+      <ComposeHintBar />
       <NoteEditor contentId={id} />
     </div>
   )

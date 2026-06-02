@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation'
 import { getContent, updateContent, uploadMedia } from '../../../_lib/actions'
 import { colors, fonts, radii, space, shadow } from '../../../_lib/theme'
 import { Button, Card, Field, StepHeader, TextInput, Textarea } from '../../../_ui'
+import { ComposeHintBar } from '../../../ComposeHintBar'
 
 // ============================================================
 // 类型 & 小工具
@@ -241,6 +242,7 @@ export default function VideoComposePage({
   return (
     <div>
       <StepHeader current="create" />
+      <ComposeHintBar />
 
       <div style={{ marginBottom: space.lg }}>
         <h1

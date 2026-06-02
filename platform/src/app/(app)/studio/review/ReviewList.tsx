@@ -38,7 +38,7 @@ export function ReviewList({ initialItems }: ReviewListProps) {
       <EmptyState
         icon="✓"
         title="暂无待审核的内容"
-        hint="当运营把稿件提交审核后，会出现在这里。你可以在「工作台」里创作并提交一篇新内容。"
+        hint="这是三步里的最后一步——你和同伴把内容提交审核后，会到这里等你「通过」并发布。现在队列是空的，去「工作台」创作并提交一篇试试。"
       />
     )
   }

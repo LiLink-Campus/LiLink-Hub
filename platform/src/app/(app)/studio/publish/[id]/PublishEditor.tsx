@@ -333,12 +333,12 @@ export function PublishEditor({
               lineHeight: 1.3,
             }}
           >
-            发布配置
+            准备发布
           </h1>
           <StatusBadge status={initial.status} />
         </div>
         <p style={{ margin: `${space.xs} 0 0`, fontSize: 14.5, color: colors.muted, lineHeight: 1.6 }}>
-          {FORM_LABEL[form]} · {previewTitle || initial.postTitle} · 选好平台、补齐信息，右侧即时预览发布效果。
+          {FORM_LABEL[form]} · {previewTitle || initial.postTitle} · 选好平台、补齐信息，右侧即时预览；填好点「提交审核」，通过后才正式发出。
         </p>
         {!editable ? (
           <NoticeBar tone="info">
@@ -571,7 +571,7 @@ export function PublishEditor({
               }}
             >
               <SectionTitle style={{ margin: 0 }}>
-                {form === 'article' ? '公众号预览' : '人工发布包预览'}
+                {form === 'article' ? '公众号预览' : '发布包预览'}
               </SectionTitle>
               <span style={{ fontSize: 12.5, color: colors.muted, minHeight: 18 }}>
                 {previewBusy ? '更新中…' : '随编辑实时更新'}
@@ -831,7 +831,7 @@ function ManualPlatformPicker({
         )
       })}
       <p style={{ margin: `${space.xs} 0 0`, fontSize: 12.5, color: colors.muted, lineHeight: 1.6 }}>
-        这些平台暂无开放发布接口，提交审核通过后会生成「人工发布包」，由运营手动发布。
+        这几个平台还不能自动发布；提交审核通过后会生成「发布包」（帮你把标题、正文、话题、图都备好），你复制粘贴去平台发就行。
       </p>
     </div>
   )

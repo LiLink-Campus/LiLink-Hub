@@ -19,6 +19,7 @@ import Link from 'next/link'
 import { getContent } from '../../../_lib/actions'
 import { colors, fonts, radii, space } from '../../../_lib/theme'
 import { Button, Card, StepHeader } from '../../../_ui'
+import { ComposeHintBar } from '../../../ComposeHintBar'
 import { ComposeClient } from './ComposeClient'
 
 export const dynamic = 'force-dynamic'
@@ -88,6 +89,7 @@ export default async function ArticleComposePage({
   return (
     <div>
       <StepHeader current="create" />
+      <ComposeHintBar />
 
       {/* 页头：标题 + 去发布 */}
       <div
@@ -122,7 +124,7 @@ export default async function ArticleComposePage({
               lineHeight: 1.6,
             }}
           >
-            左边写、右边看；改动会自动保存。写好后点「下一步：发布」。
+            专心写正文，改动会自动保存；写好后点「下一步：发布」。
           </p>
         </div>
 

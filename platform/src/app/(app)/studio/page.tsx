@@ -20,6 +20,7 @@ import Link from 'next/link'
 
 import { Card, EmptyState, StatusBadge, StepHeader } from './_ui'
 import { DeleteButton } from './DeleteButton'
+import { WelcomeGuide } from './WelcomeGuide'
 import { listMyContent } from './_lib/actions'
 import type { ContentForm, StudioContentSummary, StudioStatus } from './_lib/types'
 import { colors, fonts, radii, space, shadow } from './_lib/theme'
@@ -182,6 +183,9 @@ export default async function StudioHomePage() {
       {/* 顶部三步进度：工作台属「创作」起点。 */}
       <StepHeader current="create" />
 
+      {/* 一次性新手引导卡（可关闭、记 localStorage；未关闭时显示） */}
+      <WelcomeGuide />
+
       {/* ===== 标题区 + 开始创作 ===== */}
       <section
         style={{
@@ -250,32 +254,51 @@ export default async function StudioHomePage() {
         <EmptyState
           icon="✎"
           title="还没有任何内容"
-          hint="点「开始创作」选一种形式（长文 / 图文 / 视频），就能开写啦。写好的内容会按状态自动归类到这里。"
+          hint="点「开始创作」选一种形式（长文 / 图文 / 视频）就能开写，改动自动存草稿；写好后去发布页选平台、补信息、提交审核，通过后长文一键发公众号草稿、图文 / 视频生成发布包。"
           action={
-            <Link
-              href="/studio/create"
+            <div
               style={{
-                display: 'inline-flex',
+                display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: space.xs,
-                minHeight: 48,
-                padding: `12px ${space.lg}`,
-                fontFamily: fonts.sans,
-                fontSize: 16,
-                fontWeight: 600,
-                lineHeight: 1.2,
-                color: colors.onRose,
-                background: colors.rose,
-                border: '1px solid transparent',
-                borderRadius: radii.pill,
-                boxShadow: shadow.card,
-                textDecoration: 'none',
-                whiteSpace: 'nowrap',
+                gap: space.sm,
               }}
             >
-              开始创作 ✎
-            </Link>
+              <Link
+                href="/studio/create"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: space.xs,
+                  minHeight: 48,
+                  padding: `12px ${space.lg}`,
+                  fontFamily: fonts.sans,
+                  fontSize: 16,
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                  color: colors.onRose,
+                  background: colors.rose,
+                  border: '1px solid transparent',
+                  borderRadius: radii.pill,
+                  boxShadow: shadow.card,
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                开始创作 ✎
+              </Link>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                  color: colors.muted,
+                }}
+              >
+                不确定选哪种？长文 = 公众号文章，图文 = 小红书等，视频 = 抖音 / 视频号
+              </p>
+            </div>
           }
         />
       ) : (

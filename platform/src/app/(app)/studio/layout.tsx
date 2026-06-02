@@ -22,6 +22,7 @@ import { redirect } from 'next/navigation'
 
 import { requireUser } from './_lib/auth'
 import { colors, fonts, radii, space, shadow } from './_lib/theme'
+import { NavLinks } from './NavLinks'
 
 export const dynamic = 'force-dynamic'
 
@@ -132,36 +133,7 @@ export default async function StudioLayout({ children }: { children: ReactNode }
             >
               LiLink
             </Link>
-            <nav style={{ display: 'flex', alignItems: 'center', gap: space.sm }} aria-label="主导航">
-              <Link
-                href="/studio"
-                style={{
-                  fontSize: 15,
-                  fontWeight: 500,
-                  color: colors.ink,
-                  textDecoration: 'none',
-                  padding: `6px ${space.sm}`,
-                  borderRadius: radii.sm,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                工作台
-              </Link>
-              <Link
-                href="/studio/review"
-                style={{
-                  fontSize: 15,
-                  fontWeight: 500,
-                  color: colors.ink,
-                  textDecoration: 'none',
-                  padding: `6px ${space.sm}`,
-                  borderRadius: radii.sm,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                审核队列
-              </Link>
-            </nav>
+            <NavLinks />
           </div>
 
           {/* 右：当前用户名 + 退出登录（form 触发内联 server action） */}

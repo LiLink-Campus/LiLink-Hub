@@ -46,7 +46,11 @@ export async function getCurrentUser(): Promise<StudioUser | null> {
 export async function requireUser(): Promise<StudioUser> {
   const user = await getCurrentUser()
   if (!user) {
-    redirect('/login')
+    // middleware.ts 给 /studio/* 注入了 x-pathname（当前路径+query），用于登录后回到原页。
+    // 拿不到（未匹配 middleware）则退化为不带 next，行为同以往。
+    const path = (await nextHeaders()).get('x-pathname')
+    const next = path && path.startsWith('/studio') ? `?next=${encodeURIComponent(path)}` : ''
+    redirect(`/login${next}`)
   }
   return user
 }
