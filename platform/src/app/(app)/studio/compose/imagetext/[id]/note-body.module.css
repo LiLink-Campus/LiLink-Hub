@@ -1,0 +1,94 @@
+/* note-body.module.css —— 小红书式正文编辑区。
+ * 范式：纯文本 + #话题 + emoji + 分段（无 H2/加粗/列表）。
+ * 视觉：暖灰正文、舒适行距，贴近小红书后台正文观感；#话题 小红书蓝高亮。
+ * 本文件由 NoteBody 独占（样式文件分配约定）。 */
+
+.shell {
+  --ink: #3f3f46;
+  --muted: #a1a1aa;
+  --rule: #ececef;
+  --paper: #ffffff;
+  --hash: #13386c; /* 小红书话题蓝 */
+  --hash-soft: rgba(19, 56, 108, 0.08);
+  --sans: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
+
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+/* Lexical 可编辑区：纯文本，舒适行距。 */
+.editable {
+  outline: none;
+  font-family: var(--sans);
+  font-size: 15.5px;
+  line-height: 1.85;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+  caret-color: var(--hash);
+  min-height: 220px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.placeholder {
+  position: absolute;
+  top: 16px;
+  left: 18px;
+  pointer-events: none;
+  user-select: none;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 15.5px;
+  line-height: 1.85;
+}
+
+/* 单段落容器（正文只有一个段落，换行用 LineBreakNode）。 */
+.paragraph {
+  margin: 0;
+}
+
+/* #话题高亮：HashtagNode.createDOM 会加上 theme.hashtag 这个 className。 */
+.hashtag {
+  color: var(--hash);
+  background: var(--hash-soft);
+  border-radius: 4px;
+  padding: 0 2px;
+  font-weight: 500;
+}
+
+/* ===== # 联想下拉 ===== */
+/* 插件创建并定位锚点元素在光标处；菜单通过 createPortal 渲进锚点。 */
+.menu {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 4px;
+  min-width: 160px;
+  max-height: 256px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #e7e7ea;
+  border-radius: 10px;
+  box-shadow: 0 8px 28px -10px rgba(40, 40, 48, 0.28);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
+  font-size: 14px;
+  z-index: 1000;
+}
+
+.menuItem,
+.menuItemActive {
+  padding: 7px 10px;
+  border-radius: 7px;
+  color: #3f3f46;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.menuItemActive {
+  background: rgba(19, 56, 108, 0.08);
+  color: #13386c;
+}
