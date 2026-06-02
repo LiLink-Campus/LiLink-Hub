@@ -164,6 +164,42 @@ export async function listReviewQueue(): Promise<StudioContentSummary[]> {
   }
 }
 
+/**
+ * 历史话题聚合：取最近渠道稿的 socialTags 去重（不带#），供图文编辑器联想候选。
+ * 失败返回空数组不抛——联想是增强项，不该让编辑页崩。
+ */
+export async function listRecentSocialTags(): Promise<string[]> {
+  try {
+    const { payload, user } = await getPayloadAndMaybeUser()
+    if (!user) return []
+    const res = await payload.find({
+      collection: CHANNEL_CONTENTS,
+      depth: 0,
+      limit: 100,
+      sort: '-updatedAt',
+      overrideAccess: false,
+      user: user as never,
+    })
+    const seen = new Set<string>()
+    const out: string[] = []
+    for (const doc of res.docs as unknown as Record<string, unknown>[]) {
+      const tags = doc.socialTags
+      if (!Array.isArray(tags)) continue
+      for (const t of tags) {
+        const tag = typeof t === 'string' ? t : (t as Record<string, unknown>)?.tag
+        const s = typeof tag === 'string' ? tag.trim() : ''
+        if (s && !seen.has(s)) {
+          seen.add(s)
+          out.push(s)
+        }
+      }
+    }
+    return out.slice(0, 50)
+  } catch {
+    return []
+  }
+}
+
 // ---------- 取单条 ----------
 
 /**
