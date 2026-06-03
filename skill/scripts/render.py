@@ -41,8 +41,9 @@ STYLE = {
     "muted": f"margin:0 0 1.15em;font-size:14px;line-height:1.85;color:{MUTED};text-align:start",
     "title": f"margin:0 0 .3em;text-align:center;font-size:25px;font-weight:700;color:{INK_STRONG};line-height:1.4;font-family:{SERIF}",
     "chapter": f"margin:2.6em 0 .9em;font-size:21px;font-weight:700;color:{INK_STRONG};line-height:1.45;font-family:{SERIF}",
-    "step": f"margin:1.9em 0 .7em;font-size:16.5px;font-weight:600;color:{INK_STRONG};line-height:1.5",
-    "eyebrow": f"margin:1.6em 0 .6em;font-size:13.5px;font-weight:700;color:{ROSE};letter-spacing:.05em",
+    "step": f"margin:2.1em 0 .7em;font-size:18.5px;font-weight:700;color:{INK_STRONG};line-height:1.5",
+    "subhead": f"margin:1.8em 0 .55em;font-size:17px;font-weight:700;color:{ROSE};line-height:1.55",
+    "eyebrow": f"margin:1.5em 0 .5em;font-size:16px;font-weight:700;color:{ROSE};line-height:1.6",
     "ul": "margin:.8em 0 1.15em;padding-left:1.35em",
     "ol": "margin:.8em 0 1.15em;padding-left:1.5em",
     "li": f"margin:.45em 0;font-size:15.5px;line-height:1.85;color:{INK}",
@@ -131,13 +132,15 @@ def render_blocks(lines, role_map, base_dir, embed):
     out = []
     i, n = 0, len(lines)
 
-    def img_html(alt, src):
-        capped = not RE_FILENAME_ALT.search(alt or "")
+    def img_html(alt, src, caption=None):
+        cap = caption.strip() if caption and caption.strip() else ""
+        # 有显式尾随题注 → 一定配题注；否则沿用旧规则：文件名式 alt 不配题注
+        capped = bool(cap) or not RE_FILENAME_ALT.search(alt or "")
         style = STYLE["img_capped"] if capped else STYLE["img"]
         resolved = embed_image(src, base_dir) if embed else src
         parts = [f'<img src="{resolved}" alt="{esc(alt)}" style="{style}">']
         if capped:
-            parts.append(f'<p style="{STYLE["cap"]}">{esc(alt)}</p>')
+            parts.append(f'<p style="{STYLE["cap"]}">{esc(cap or alt)}</p>')
         return "".join(parts)
 
     while i < n:
@@ -162,6 +165,8 @@ def render_blocks(lines, role_map, base_dir, embed):
                     out.append(f'<h2 style="{STYLE["chapter"]}">{color_lead(text, RE_CHAPTER_LEAD)}</h2>')
                 elif role == "step":
                     out.append(f'<h3 style="{STYLE["step"]}">{color_lead(text, RE_STEP_LEAD)}</h3>')
+                elif role == "subhead":
+                    out.append(f'<h4 style="{STYLE["subhead"]}">{inline(text)}</h4>')
                 else:
                     out.append(f'<p style="{STYLE["eyebrow"]}">{inline(text)}</p>')
             i += 1
@@ -173,10 +178,10 @@ def render_blocks(lines, role_map, base_dir, embed):
             i += 1
             continue
 
-        # 独占一行的图片
-        m = re.match(r"^!\[(.*?)\]\((.*?)\)\s*$", stripped)
+        # 独占一行的图片（可带紧跟其后的 *斜体题注*）
+        m = re.match(r"^!\[(.*?)\]\((.*?)\)\s*(?:\*([^*]+?)\*\s*)?$", stripped)
         if m:
-            out.append(img_html(m.group(1), m.group(2)))
+            out.append(img_html(m.group(1), m.group(2), m.group(3)))
             i += 1
             continue
 
@@ -225,7 +230,7 @@ def build_role_map(lines):
     """根据用到的标题层级，把最浅一层→chapter，下一层→step，再深→eyebrow。"""
     levels = sorted({len(m.group(1)) for ln in lines
                      for m in [re.match(r"^(#{1,6})\s+", ln)] if m and len(m.group(1)) >= 2})
-    roles = ["chapter", "step", "eyebrow", "eyebrow", "eyebrow"]
+    roles = ["chapter", "step", "subhead", "eyebrow", "eyebrow"]
     return {lvl: roles[min(idx, len(roles) - 1)] for idx, lvl in enumerate(levels)}
 
 
@@ -285,11 +290,14 @@ PAGE = """<!DOCTYPE html>
 
 
 def cta_block(url, text):
+    # 公众号正文里按钮/外链都点不动，真正入口是文章左下角的「阅读原文」。
+    # 所以不画胶囊按钮，只放一句指向「阅读原文」的克制引导文字。
+    label = esc(text).rstrip(" →↘↗➝➞⟶-")
     return (
         f'<p style="{STYLE["hr"]}">&nbsp;</p>'
-        f'<p style="margin:1.2em 0 .2em;text-align:center">'
-        f'<a href="{url}" style="display:inline-block;background:{ROSE};color:#fff;text-decoration:none;'
-        f'font-size:15px;font-weight:500;padding:11px 28px;border-radius:999px">{esc(text)}</a></p>'
+        f'<p style="margin:1.5em 0 .2em;text-align:center;font-size:15px;line-height:1.9;color:{INK}">'
+        f'{label} —— 点本文左下角的'
+        f'<span style="color:{ROSE};font-weight:600">「阅读原文」</span> ↙</p>'
     )
 
 
